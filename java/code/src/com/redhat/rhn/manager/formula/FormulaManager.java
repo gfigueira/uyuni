@@ -342,4 +342,26 @@ public class FormulaManager {
             FormulaFactory.saveServerFormulas(minionId, enabledFormulas);
         }
     }
+
+    /**
+     * Configure system for monitoring when the entitlement is added.
+     * @param minion the MinionServer to be configured for monitoring
+     */
+    public void enableMonitoringOnEntitlementAdd(MinionServer minion) {
+        try {
+            // Assign the monitoring formula to the system unless it belongs to a group having monitoring enabled
+            if (!FormulaFactory.isMemberOfGroupHavingMonitoring(minion)) {
+                List<String> formulas = FormulaFactory.getFormulasByMinionId(minion.getMinionId());
+                if (!formulas.contains(FormulaFactory.PROMETHEUS_EXPORTERS)) {
+                    formulas.add(FormulaFactory.PROMETHEUS_EXPORTERS);
+                    FormulaFactory.saveServerFormulas(minion.getMinionId(), formulas);
+                }
+            }
+        }
+        catch (UnsupportedOperationException | IOException e) {
+            // FIXME: error handling
+            // LOG.error("Error assigning formula: " + e.getMessage(), e);
+            // result.addError(new ValidatorError("system.entitle.formula_error"));
+        }
+    }
 }
