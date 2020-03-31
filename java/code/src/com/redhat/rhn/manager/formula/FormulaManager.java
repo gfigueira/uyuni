@@ -364,4 +364,26 @@ public class FormulaManager {
             // result.addError(new ValidatorError("system.entitle.formula_error"));
         }
     }
+
+    /**
+     * Configure the monitoring formula for cleanup (disable exporters) if needed.
+     * @param minion the MinionServer to be configured for monitoring cleanup
+     */
+    public void disableMonitoringOnEntitlementRemoval(MinionServer minion) {
+        if (this.isMonitoringCleanupNeeded(minion)) {
+            try {
+                // Get the current data and set all exporters to disabled
+                String minionId = minion.getMinionId();
+                Map<String, Object> data = FormulaFactory
+                        .getFormulaValuesByNameAndMinionId(PROMETHEUS_EXPORTERS, minionId)
+                        .orElse(FormulaFactory.getPillarExample(PROMETHEUS_EXPORTERS));
+                FormulaFactory.saveServerFormulaData(
+                        FormulaFactory.disableMonitoring(data), minionId, PROMETHEUS_EXPORTERS);
+            }
+            catch (UnsupportedOperationException | IOException e) {
+                // FIXME: error handling
+                // LOG.warn("Exception on saving formula data: " + e.getMessage());
+            }
+        }
+    }
 }

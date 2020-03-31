@@ -297,8 +297,14 @@ public class SystemDetailsEditAction extends RhnAction {
                      s.hasEntitlement(e)) {
                 log.debug("removing entitlement: " + e);
                 systemEntitlementManager.removeServerEntitlement(s, e);
-
                 needsSnapshot = true;
+
+                // Trigger handling for monitoring
+                s.asMinionServer().ifPresent(minion -> {
+                    if (EntitlementManager.MONITORING.equals(e)) {
+                        FormulaManager.getInstance().disableMonitoringOnEntitlementRemoval(minion);
+                    }
+                });
             }
         }
 
